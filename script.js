@@ -1,93 +1,104 @@
 const questions = [
   {
-    question: "What is 2 + 2?",
-    options: ["2", "3", "4", "5"],
-    answer: 2
-  },
-  {
     question: "What is the capital of France?",
     options: ["Berlin", "Madrid", "Paris", "Rome"],
     answer: 2
   },
   {
-    question: "What color is the sky?",
-    options: ["Blue", "Green", "Red", "Yellow"],
-    answer: 0
+    question: "Which language runs in a web browser?",
+    options: ["Java", "C", "Python", "JavaScript"],
+    answer: 3
   },
   {
-    question: "Which is a mammal?",
-    options: ["Shark", "Dolphin", "Octopus", "Trout"],
+    question: "What does CSS stand for?",
+    options: [
+      "Central Style Sheets",
+      "Cascading Style Sheets",
+      "Cascading Simple Sheets",
+      "Cars SUVs Sailboats"
+    ],
     answer: 1
   },
   {
-    question: "How many continents are there?",
-    options: ["5", "6", "7", "8"],
-    answer: 2
+    question: "What does HTML stand for?",
+    options: [
+      "Hypertext Markup Language",
+      "Hypertext Markdown Language",
+      "Hyperloop Machine Language",
+      "Helicopters Terminals Motorboats Lamborginis"
+    ],
+    answer: 0
+  },
+  {
+    question: "What year was JavaScript launched?",
+    options: ["1996", "1995", "1994", "none of the above"],
+    answer: 1
   }
 ];
 
-// Load progress from sessionStorage
-let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
+const questionsContainer = document.getElementById('questions');
+const submitBtn = document.getElementById('submit');
+const scoreDiv = document.getElementById('score');
 
-function renderQuiz() {
-  const container = document.getElementById("questions");
-  container.innerHTML = "";
+// Load saved progress
+let savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+let submitted = false;
 
-  questions.forEach((q, i) => {
-    const div = document.createElement("div");
+// Render questions and restore progress
+function renderQuestions() {
+  questionsContainer.innerHTML = "";
+
+  questions.forEach((q, qIndex) => {
+    const questionDiv = document.createElement("div");
+
     const questionText = document.createElement("p");
-    questionText.textContent = q.question;
-    div.appendChild(questionText);
+    questionText.textContent = `${qIndex + 1}. ${q.question}`;
+    questionDiv.appendChild(questionText);
 
-    q.options.forEach((option, j) => {
+    q.options.forEach((option, oIndex) => {
       const label = document.createElement("label");
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = `question-${i}`;
-      input.value = j;
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = `question-${qIndex}`;
+      radio.value = oIndex;
 
-      // Check saved selection
-      if (progress[i] !== undefined && progress[i] == j) {
-        input.checked = true;
+      if (savedProgress[qIndex] == oIndex) {
+        radio.checked = true;
       }
 
-      // Save selection on change
-      input.addEventListener("change", () => {
-        progress[i] = j;
-        sessionStorage.setItem("progress", JSON.stringify(progress));
+      radio.addEventListener("change", () => {
+        savedProgress[qIndex] = parseInt(oIndex);
+        sessionStorage.setItem("progress", JSON.stringify(savedProgress));
       });
 
-      label.appendChild(input);
+      label.appendChild(radio);
       label.appendChild(document.createTextNode(option));
-      div.appendChild(label);
-      div.appendChild(document.createElement("br"));
+      questionDiv.appendChild(label);
     });
 
-    container.appendChild(div);
+    questionsContainer.appendChild(questionDiv);
   });
 }
 
-// Calculate score and store it
-document.getElementById("submit").addEventListener("click", () => {
+// Submit quiz and calculate score
+submitBtn.addEventListener("click", () => {
   let score = 0;
+
   questions.forEach((q, i) => {
-    if (progress[i] != null && parseInt(progress[i]) === q.answer) {
+    if (savedProgress[i] === q.answer) {
       score++;
     }
   });
 
-  const scoreText = `Your score is ${score} out of ${questions.length}.`;
-  document.getElementById("score").textContent = scoreText;
-
+  scoreDiv.textContent = `Your score is ${score} out of ${questions.length}.`;
   localStorage.setItem("score", score);
-  sessionStorage.removeItem("progress");
+  submitted = true;
 });
 
-// Display saved score if available
-const savedScore = localStorhttps://www.svgrepo.com/show/345221/three-dots.svgage.getItem("score");
-if (savedScore !== null) {
-  document.getElementById("score").textContent = `Your score is ${savedScore} out of ${questions.length}.`;
+// Show previous score if exists
+const lastScore = localStorage.getItem("score");
+if (lastScore !== null) {
+  scoreDiv.textContent = `Your score is ${lastScore} out of ${questions.length}.`;
 }
 
-// Initial render
-renderQuiz();
+renderQuestions();
